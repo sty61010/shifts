@@ -27,6 +27,13 @@ from sdc.oatomobile.torch.baselines.behavioral_cloning import (
 from sdc.oatomobile.torch.baselines.deep_imitative_model import (
     ImitativeModel)
 
+#######################################################################################
+# main
+from sdc.oatomobile.torch.baselines.behavioral_cloning_nfnets_attention_loss \
+import (
+    BehaviouralModel_NFNets_Attention_Loss, \
+    train_step_bc_nfnets_attention_loss,\
+    evaluate_step_bc_nfnets_attention_loss)
 
 class RIPAgent:
     """The robust imitative planning agent."""
@@ -35,7 +42,10 @@ class RIPAgent:
                  per_plan_algorithm: str,
                  per_scene_algorithm: str,
                  model_name: str,
-                 models: Sequence[Union[BehaviouralModel, ImitativeModel]],
+                 models: Sequence[Union[BehaviouralModel, \
+                                        ImitativeModel, \
+                                        BehaviouralModel_NFNets_Attention_Loss, \
+                                       ]],
                  device: str,
                  samples_per_model: int,
                  num_preds: int,
@@ -65,7 +75,10 @@ class RIPAgent:
         self._models = [model.to(self._device) for model in models]
 
         # Determines backbone model.
-        assert model_name in ("bc", "dim")
+        assert model_name in ("bc", \
+                              "dim", \
+                              "bc_nfnets_attention_loss", \
+                             )
         self._model_name = model_name
 
         # If enabled, don't use aggregation -- just cache all
@@ -115,16 +128,20 @@ class RIPAgent:
         scores = []
         for i in range(K):
             model_i_scores = []
-            for j in range(G):
+            for j in range(G):#G
                 model_i_scores.append(
-                    self._models[i].score_plans(predictions[j, :, :, :]))
+                    self._models[i].score_plans(predictions[j, :, :, :]))#j
 
             scores.append(torch.stack(model_i_scores, dim=0))
+
+#         print("scores_not_stack.shape: ", scores.shape)
 
         # A high score at i, j denotes a high log probability
         # of plan j under the likelihood of model i.
         scores = torch.stack(scores, dim=0)
 
+#         print("scores.shape: ", scores.shape)
+        
         if self.cache_all_preds:
             # permute axes to (B, G, T, 2)
             # predictions = np.transpose(predictions, axes=(1, 0, 2, 3))
@@ -138,6 +155,9 @@ class RIPAgent:
         scores = self.run_rip_aggregation(
             algorithm=self._per_plan_algorithm,
             scores_to_aggregate=scores)
+#         scores = scores.view(-1, B)
+#         scores = torch.topk(scores, k=Q*K, dim=0)
+#         print("scores_agg.shape: ", scores.shape)
 
         # Get indices of the plans with highest RIP-aggregated scores
         # for each prediction request (scene input) in the batch
@@ -170,7 +190,10 @@ class RIPAgent:
         self,
         **observation: Mapping[str, torch.Tensor],
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        if self._model_name not in {'bc', 'dim'}:
+        if self._model_name not in {'bc', \
+                                    'dim', \
+                                    'bc_nfnets_attention_loss', \
+                                   }:
             raise NotImplementedError
 
         return self.call_ensemble_members(**observation)

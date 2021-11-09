@@ -22,8 +22,10 @@ def build_parser():
     parser.add_argument(
         '--dir_tensorboard', type=str, default='tb',
         help='Directory to which TensorBoard logs.')
+    # /home/master/10/cytseng/shifts_sdc_dataset/data
+    # /tmp3/cytseng/shifts_sdc_dataset/data
     parser.add_argument(
-        '--dir_data', type=str, default='data',
+        '--dir_data', type=str, default='/tmp3/cytseng/shifts_sdc_dataset/data',
         help='Directory where SDC data is stored. We also use this to cache '
              'torch hub models.')
     parser.add_argument(
@@ -32,7 +34,7 @@ def build_parser():
              'be set to `{dir_data}/metrics`.')
     parser.add_argument(
         '--dir_metadata_cache', type=str, default=None,
-        help='Directory where dataset stats are stored (controlled by '
+        help='Directory where dataset stats are stored (cowntrolled by '
              '`debug_collect_dataset_stats` attribute).')
     parser.add_argument(
         '--dir_checkpoint', type=str, default='model_checkpoints',
@@ -94,11 +96,11 @@ def build_parser():
         default=False, type=int,
         help='Print during mini-batch as well for large epochs.')
     parser.add_argument(
-        '--exp_lr', type=float, default=1e-3)
+        '--exp_lr', type=float, default=1e-4)
     parser.add_argument(
         '--exp_num_lr_warmup_epochs', type=int, default=1)
     parser.add_argument(
-        '--exp_batch_size', type=int, default=512)
+        '--exp_batch_size', type=int, default=650)
     parser.add_argument(
         '--exp_num_epochs', type=int, default=100)
     parser.add_argument(
@@ -112,10 +114,10 @@ def build_parser():
              'validation loss improves.')
     parser.add_argument(
         '--exp_checkpoint_validation_loss', type=str,
-        default='moscow__validation__ade',
+        default='moscow__development__ade',
         help='Loss to use for model checkpointing (i.e., checkpoint if model '
              'improves this validation loss. Note that by default, this uses '
-             'the in-distribution (Moscow, no precipitation) validation set.')
+             'the in-distribution (Moscow, no precipitation) development set.')
 
     ###########################################################################
     # #### Model ##############################################################
@@ -149,10 +151,12 @@ def build_parser():
     parser.add_argument('--model_weight_decay', type=float, default=0.0,
                         help="The L2 penalty (regularization) coefficient.")
     parser.add_argument(
-        '--model_clip_gradients', type='bool', default=False,
+        '--model_clip_gradients', type='bool', default=True,
         help='Clips gradients to 1.0.')
 
-
+    parser.add_argument(
+        '--model_checkpoint_load_number', type=int, default=0,
+        help="Load model checkpoints.")
     ###########################################################################
     # #### Method-Specific Hypers #############################################
     ###########################################################################
@@ -201,7 +205,7 @@ def build_parser():
              "generations from the ensemble members.")
     parser.add_argument(
         '--rip_eval_subgroup', type=str, default=None,
-        help="If specified, RIP will only evaluate on either train/eval "
+        help="If specified, RIP will only evaluate on either train/development "
              "datasets. Helpful to parallelize evaluation load across jobs.")
     parser.add_argument(
         '--rip_cache_all_preds', type='bool', default=False,

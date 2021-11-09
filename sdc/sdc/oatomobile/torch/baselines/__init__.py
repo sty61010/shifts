@@ -23,7 +23,15 @@ from sdc.oatomobile.torch.baselines.deep_imitative_model import (
 from sdc.oatomobile.torch.baselines.robust_imitative_planning import (
     evaluate_step_rip, RIPAgent)
 
+#######################################################################################
+# main
+from sdc.oatomobile.torch.baselines.behavioral_cloning_nfnets_attention_loss \
+import (
+    BehaviouralModel_NFNets_Attention_Loss, \
+    train_step_bc_nfnets_attention_loss,\
+    evaluate_step_bc_nfnets_attention_loss)
 
+#######################################################################################
 def init_behavioral_model(c):
     kwargs = get_bc_kwargs(c)
     print('Model kwargs:')
@@ -58,11 +66,31 @@ def get_dim_kwargs(c):
         'device': c.exp_device
     }
 
+#######################################################################################
+def init_behavioral_nfnets_attention_loss_model(c):
+    kwargs = get_bc_nfnets_attention_loss_kwargs(c)
+    print('Model kwargs:')
+    pprint(kwargs)
+    return BehaviouralModel_NFNets_Attention_Loss(**kwargs).to(kwargs['device'])
+
+
+def get_bc_nfnets_attention_loss_kwargs(c):
+    return {
+        'in_channels': c.model_in_channels,
+        'dim_hidden': c.model_dim_hidden,
+        'output_shape': c.model_output_shape,
+        'bc_deterministic': c.bc_deterministic,
+        'generation_mode': c.bc_generation_mode,
+        'device': c.exp_device
+    }
+#######################################################################################
 
 def init_rip(c):
     # Init kwargs/config items
     ensemble_kwargs = get_rip_kwargs(c)
     k = ensemble_kwargs['k']
+    num_preds = ensemble_kwargs['num_preds']
+    samples_per_model = ensemble_kwargs['samples_per_model']
     print('RIP kwargs:')
     pprint(ensemble_kwargs)
     per_plan_algorithm = c.rip_per_plan_algorithm
@@ -75,7 +103,7 @@ def init_rip(c):
           f'{k} ensemble members.')
     full_model_name = (
         f'rip-{model_name}-k_{k}-plan_{per_plan_algorithm}-scene'
-        f'_{per_scene_algorithm}').lower()
+        f'_{per_scene_algorithm}-preds_{num_preds}-sample_{samples_per_model}').lower()
 
     # Init models
     backbone_init_fn, _, _ = BACKBONE_NAME_TO_CLASS_FNS[model_name]
@@ -113,15 +141,24 @@ def get_rip_kwargs(c):
 
 BACKBONE_NAME_TO_KWARGS_FN = {
     'bc': get_bc_kwargs,
-    'dim': get_dim_kwargs
+    'dim': get_dim_kwargs,
+    'bc_nfnets_attention_loss': get_bc_nfnets_attention_loss_kwargs, 
+
 }
 
 BACKBONE_NAME_TO_CLASS_FNS = {
     'bc': (init_behavioral_model, train_step_bc, evaluate_step_bc),
     'dim': (init_imitative_model, train_step_dim, evaluate_step_dim),
+    # main
+    'bc_nfnets_attention_loss':\
+        (init_behavioral_nfnets_attention_loss_model, \
+         train_step_bc_nfnets_attention_loss, \
+         evaluate_step_bc_nfnets_attention_loss),
 }
 
 BACKBONE_NAME_TO_FULL_NAME = {
     'bc': 'Behavioral Cloning',
-    'dim': 'Deep Imitative Model'
+    'dim': 'Deep Imitative Model',
+    'bc_nfnets_attention_loss': \
+    'Behavioral Cloning with NFNets backbone with Attention and ADE Loss',
 }

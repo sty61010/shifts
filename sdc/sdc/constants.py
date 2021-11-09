@@ -13,16 +13,16 @@ SCENE_TAG_TYPE_TO_OPTIONS = {
 VALID_AGGREGATORS = {'min', 'avg', 'top1', 'weighted'}
 VALID_BASE_METRICS = {'ade', 'fde'}
 SPLIT_TO_PB_DATASET_PATH = {  # Protobufs (unrendered)
-    'train': '/train_pb/',
-    'validation': '/validation_pb/',
+    'train': '/train/',
+    'development': '/development/',
 }
 SPLIT_TO_RENDERED_DATASET_PATH = {  # np.ndarrays (rendered)
-    'train': '/train_rendered/',
-    'validation': '/validation_rendered/',
+    'train': '/train_renders/',
+    'development': '/development_renders/',
 }
 SPLIT_TO_SCENE_TAGS_PATH = {
-    'train': '/train_tags.txt',
-    'validation': '/validation_tags.txt',
+    'train': '/train/tags.txt',
+    'development': '/development/tags.txt',
 }
 
 # Matplotlib colors for retention plots with baselines.
