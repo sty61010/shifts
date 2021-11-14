@@ -1,4 +1,4 @@
-_VISIBLE_DEVICES=6 python run.py \
+CUDA_VISIBLE_DEVICES=6 python run.py \
 	--model_name bc_nfnets_attention_loss \
 	--data_use_prerendered True \
 	--bc_generation_mode sampling \
